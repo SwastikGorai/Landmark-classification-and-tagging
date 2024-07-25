@@ -1,3 +1,4 @@
+import pytest
 import math
 import torch
 import torch.utils.data
@@ -50,12 +51,16 @@ def get_data_loaders(
             [
                 transforms.Resize(256),
                 transforms.CenterCrop(224),
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomVerticalFlip(),
-                transforms.RandomRotation(30),
+                transforms.RandomChoice([
+                    transforms.ColorJitter(brightness=0.2),
+                    transforms.ColorJitter(saturation=0.2),
+                    transforms.ColorJitter(hue=0.2),
+                    transforms.ColorJitter(contrast=0.2),
+                ]),
                 transforms.ToTensor(),
+                transforms.Normalize(mean, std)
             ]
-            
+
 
         ),
         "valid": transforms.Compose(
@@ -63,6 +68,7 @@ def get_data_loaders(
                 transforms.Resize(256),
                 transforms.CenterCrop(224),
                 transforms.ToTensor(),
+                transforms.Normalize(mean, std)
             ]
         ),
         "test": transforms.Compose(
@@ -70,6 +76,7 @@ def get_data_loaders(
                 transforms.Resize(256),
                 transforms.CenterCrop(224),
                 transforms.ToTensor(),
+                transforms.Normalize(mean, std)
             ]
         ),
     }
@@ -102,7 +109,7 @@ def get_data_loaders(
 
     # define samplers for obtaining training and validation batches
     train_sampler = torch.utils.data.SubsetRandomSampler(train_idx)
-    valid_sampler  = torch.utils.data.SubsetRandomSampler(valid_idx)
+    valid_sampler = torch.utils.data.SubsetRandomSampler(valid_idx)
 
     # prepare data loaders
     data_loaders["train"] = torch.utils.data.DataLoader(
@@ -154,10 +161,10 @@ def visualize_one_batch(data_loaders, max_n: int = 5):
     # YOUR CODE HERE:
     # obtain one batch of training images
     # First obtain an iterator from the train dataloader
-    dataiter  = iter(data_loaders["train"])
+    dataiter = iter(data_loaders["train"])
     # Then call the .next() method on the iterator you just
     # obtained
-    images, labels  = next(dataiter)
+    images, labels = next(dataiter)
 
     # Undo the normalization (for visualization purposes)
     mean, std = compute_mean_and_std()
@@ -172,7 +179,7 @@ def visualize_one_batch(data_loaders, max_n: int = 5):
 
     # YOUR CODE HERE:
     # Get class names from the train data loader
-    class_names  = data_loaders["train"].dataset.classes
+    class_names = data_loaders["train"].dataset.classes
 
     # Convert from BGR (the format used by pytorch) to
     # RGB (the format expected by matplotlib)
@@ -191,7 +198,6 @@ def visualize_one_batch(data_loaders, max_n: int = 5):
 ######################################################################################
 #                                     TESTS
 ######################################################################################
-import pytest
 
 
 @pytest.fixture(scope="session")
@@ -201,7 +207,8 @@ def data_loaders():
 
 def test_data_loaders_keys(data_loaders):
 
-    assert set(data_loaders.keys()) == {"train", "valid", "test"}, "The keys of the data_loaders dictionary should be train, valid and test"
+    assert set(data_loaders.keys()) == {
+        "train", "valid", "test"}, "The keys of the data_loaders dictionary should be train, valid and test"
 
 
 def test_data_loaders_output_type(data_loaders):
@@ -219,7 +226,8 @@ def test_data_loaders_output_shape(data_loaders):
     dataiter = iter(data_loaders["train"])
     images, labels = next(dataiter)
 
-    assert len(images) == 2, f"Expected a batch of size 2, got size {len(images)}"
+    assert len(
+        images) == 2, f"Expected a batch of size 2, got size {len(images)}"
     assert (
         len(labels) == 2
     ), f"Expected a labels tensor of size 2, got size {len(labels)}"
