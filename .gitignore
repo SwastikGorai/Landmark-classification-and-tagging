@@ -162,4 +162,4 @@ cython_debug/
 #.idea/
 __MACOSX/
 
-landmark_images/
+/landmark_images/
