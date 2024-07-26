@@ -50,7 +50,10 @@ def get_data_loaders(
         "train": transforms.Compose(
             [
                 transforms.Resize(256),
-                transforms.CenterCrop(224),
+                transforms.RandomCrop(224),
+                
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
                 transforms.RandomChoice([
                     transforms.ColorJitter(brightness=0.2),
                     transforms.ColorJitter(saturation=0.2),
