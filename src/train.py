@@ -113,9 +113,7 @@ def optimize(data_loaders, model, optimizer, loss, n_epochs, save_path, interact
     scheduler  = torch.optim.lr_scheduler.ReduceLROnPlateau( # reduce lr when metric has stopped improving
         optimizer,
         mode='min',
-        factor=0.1,
-        patience=10,
-        verbose=True
+        patience=3,
     )
 
     for epoch in range(1, n_epochs + 1):
